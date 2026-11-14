@@ -3,9 +3,9 @@ services:
     image: postgres:latest
     container_name: shop-postgres
     environment:
-      POSTGRES_DB: shop
-      POSTGRES_USER: shop
-      POSTGRES_PASSWORD: shop
+      POSTGRES_DB: monitor_db
+      POSTGRES_USER: monitor_user
+      POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
     volumes:
