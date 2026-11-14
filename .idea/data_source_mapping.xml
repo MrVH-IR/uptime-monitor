@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/internal/monitor/repository.go" value="41a8806a-1ce5-4ae3-b26c-634230927f2b" />
+    <file url="file://$PROJECT_DIR$/migrations/000001_create_monitors.down.sql" value="41a8806a-1ce5-4ae3-b26c-634230927f2b" />
+  </component>
+</project>
