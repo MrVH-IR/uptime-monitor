@@ -200,8 +200,8 @@ Stores historical monitoring results.
 - [x] HTTP Checker
 - [x] HTTP Checker tests
 - [x] Worker Pool and concurrent checks
-- [ ] Scheduler
-- [ ] Persist check results
+- [x] Scheduler
+- [x] Persist check results
 - [ ] Update monitor check timestamps
 - [ ] Graceful shutdown
 - [ ] Integration tests
