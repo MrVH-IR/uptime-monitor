@@ -116,6 +116,17 @@ func (r *Repository) ListPage(ctx context.Context, offset int) ([]Monitor, error
 	return r.list(ctx, 51, offset)
 }
 
+/*
+*
+Unused
+*/
+func (r *Repository) CountByID(ctx context.Context, id int) (int, error) {
+	query := `SELECT COUNT(*) FROM monitors WHERE id = $1`
+	var count int
+	err := r.db.QueryRow(ctx, query, id).Scan(&count)
+	return count, err
+}
+
 func (r *Repository) list(ctx context.Context, limit, offset int) ([]Monitor, error) {
 	query := `
         SELECT
