@@ -39,7 +39,7 @@ func NewPool(workerCount int, checker checker.Checker) (*Pool, error) {
 }
 
 func (pool *Pool) Run(ctx context.Context, jobs <-chan monitor.Monitor) <-chan Result {
-	results := make(chan Result)
+	results := make(chan Result, pool.workersCount)
 
 	var wg sync.WaitGroup
 
@@ -64,11 +64,7 @@ func (pool *Pool) Run(ctx context.Context, jobs <-chan monitor.Monitor) <-chan R
 
 					result := Result{Monitor: target, Check: checkResult}
 
-					select {
-					case results <- result:
-					case <-ctx.Done():
-						return
-					}
+					results <- result
 				}
 			}
 		}()

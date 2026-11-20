@@ -111,3 +111,29 @@ func TestNewPool_InvalidWorkerCount(t *testing.T) {
 		t.Fatalf("expected ErrInvalidWorkerCount, got %v", err)
 	}
 }
+
+type cancelingChecker struct{ cancel context.CancelFunc }
+
+func (c cancelingChecker) Check(context.Context, monitor.Monitor) checker.Result {
+	c.cancel()
+	return checker.Result{IsSuccess: true}
+}
+func TestPoolPreservesCompletedResultOnShutdown(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pool, err := NewPool(1, cancelingChecker{cancel: cancel})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jobs := make(chan monitor.Monitor, 1)
+	jobs <- monitor.Monitor{ID: 42}
+	close(jobs)
+	results := pool.Run(ctx, jobs)
+	result, ok := <-results
+	if !ok || result.Monitor.ID != 42 {
+		t.Fatal("completed result lost during shutdown")
+	}
+	if _, ok := <-results; ok {
+		t.Fatal("unexpected extra result")
+	}
+}

@@ -15,7 +15,7 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil && errors.Is(err, os.ErrNotExist) {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, fmt.Errorf("local environment: %w", err)
 	}
 

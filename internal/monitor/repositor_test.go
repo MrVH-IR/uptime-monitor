@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -15,7 +16,7 @@ import (
 func setupTestRepository(t *testing.T) (*Repository, context.Context) {
 	t.Helper()
 
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil && !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("failed to load .env: %v", err)
 	}
 
@@ -177,5 +178,33 @@ func TestRepository_ClaimDueConcurrent(t *testing.T) {
 	if second.monitors[0].ID != firstMonitor.ID &&
 		second.monitors[0].ID != secondMonitor.ID {
 		t.Fatal("second request did not claim either test monitor")
+	}
+}
+
+func TestRepository_Complete(t *testing.T) {
+	repo, ctx := setupTestRepository(t)
+	m := createTestMonitor(t, ctx, repo)
+	started := time.Now().UTC().Truncate(time.Microsecond)
+	finished := started.Add(time.Second)
+	if err := repo.Complete(ctx, m.ID, 200, time.Second, true, "", "", started, finished); err != nil {
+		t.Fatal(err)
+	}
+	updated, err := repo.GetByID(ctx, m.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !updated.LastCheckedAt.Equal(finished) || !updated.NextCheckAt.Equal(finished.Add(60*time.Second)) {
+		t.Fatal("incorrect check timestamps")
+	}
+	var count int
+	var unlocked bool
+	if err := repo.db.QueryRow(ctx, `SELECT COUNT(*) FROM check_results WHERE monitor_id=$1`, m.ID).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.db.QueryRow(ctx, `SELECT locked_until IS NULL FROM monitors WHERE id=$1`, m.ID).Scan(&unlocked); err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 || !unlocked {
+		t.Fatalf("results=%d unlocked=%v", count, unlocked)
 	}
 }
